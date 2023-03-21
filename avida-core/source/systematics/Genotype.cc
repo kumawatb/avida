@@ -58,7 +58,6 @@ static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_ave_gestation_time(
 static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_ave_repro_rate("ave_repro_rate");
 static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_ave_metabolic_rate("ave_metabolic_rate");
 static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_ave_fitness("ave_fitness");
-static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_ave_copymutrate("ave_copymutrate"); //@BK
 
 static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_max_fitness("max_fitness");
 
@@ -100,8 +99,6 @@ void Avida::Systematics::Genotype::Initialize()
   DEFINE_PROP(ave_repro_rate, "Average Repro Rate");
   DEFINE_PROP(ave_metabolic_rate, "Average Metabolic Rate");
   DEFINE_PROP(ave_fitness, "Average Fitness");
-
-  DEFINE_PROP(ave_copymutrate, "Average Copy Mutation Rate"); //@BK
   
   DEFINE_PROP(max_fitness, "Maximum Fitness");
   
@@ -510,7 +507,6 @@ void Avida::Systematics::Genotype::setupPropertyMap() const
   ADD_FUN_PROP(ave_repro_rate, double, GetFunctor(&m_repro_rate, &cDoubleSum::Average));
   ADD_FUN_PROP(ave_metabolic_rate, double, GetFunctor(&m_merit, &cDoubleSum::Average));
   ADD_FUN_PROP(ave_fitness, double, GetFunctor(&m_fitness, &cDoubleSum::Average));
-  ADD_FUN_PROP(ave_copymutrate, double, GetFunctor(&m_fitness, &cDoubleSum::Average)); //@BK
 
   ADD_FUN_PROP(max_fitness, double, GetFunctor(&m_fitness, &cDoubleSum::Max));
   
