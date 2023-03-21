@@ -825,6 +825,7 @@ private:
   int getLastGestation();
   double getLastMetabolicRate();
   double getLastFitness();
+  double getLastCopyMutRate();
   
 private:
   OrgPropertyMap m_prop_map;
