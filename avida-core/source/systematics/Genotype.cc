@@ -40,6 +40,8 @@ static const Apto::BasicString<Apto::ThreadSafe> s_unit_prop_name_last_gestation
 static const Apto::BasicString<Apto::ThreadSafe> s_unit_prop_name_last_metabolic_rate("last_metabolic_rate");
 static const Apto::BasicString<Apto::ThreadSafe> s_unit_prop_name_last_fitness("last_fitness");
 
+static const Apto::BasicString<Apto::ThreadSafe> s_unit_prop_name_last_copymutrate("last_copymutrate"); //@BK
+
 
 static Avida::PropertyDescriptionMap s_prop_desc_map;
 
@@ -56,6 +58,7 @@ static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_ave_gestation_time(
 static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_ave_repro_rate("ave_repro_rate");
 static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_ave_metabolic_rate("ave_metabolic_rate");
 static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_ave_fitness("ave_fitness");
+static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_ave_copymutrate("ave_copymutrate"); //@BK
 
 static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_max_fitness("max_fitness");
 
@@ -97,6 +100,8 @@ void Avida::Systematics::Genotype::Initialize()
   DEFINE_PROP(ave_repro_rate, "Average Repro Rate");
   DEFINE_PROP(ave_metabolic_rate, "Average Metabolic Rate");
   DEFINE_PROP(ave_fitness, "Average Fitness");
+
+  DEFINE_PROP(ave_copymutrate, "Average Copy Mutation Rate"); //@BK
   
   DEFINE_PROP(max_fitness, "Maximum Fitness");
   
@@ -299,6 +304,8 @@ void Avida::Systematics::Genotype::HandleUnitGestation(UnitPtr u)
   m_merit.Add(u->Properties().Get(s_unit_prop_name_last_metabolic_rate));
   m_fitness.Add(u->Properties().Get(s_unit_prop_name_last_fitness));
 
+  m_copymutrate.Add(u->Properties().Get(s_unit_prop_name_last_copymutrate)); //@BK
+
   // Collect all relevant action trigger counts
 //  for (int i = 0; i < m_mgr->EnvironmentActionTriggerCountIDs().GetSize(); i++) {
 //    m_task_counts[i].Add(static_cast<int>(u->Properties().Get(m_mgr->EnvironmentActionTriggerCountIDs()[i])));
@@ -369,6 +376,8 @@ bool Avida::Systematics::Genotype::LegacySave(void* dfp) const
   df.Write(m_merit.Average(), "Average Merit", "merit");
   df.Write(m_gestation_time.Average(), "Average Gestation Time", "gest_time");
   df.Write(m_fitness.Average(), "Average Fitness", "fitness");
+
+  df.Write(m_copymutrate.Average(),"Average Copy Mutation Rate","copymutrate"); //@BK
   
   df.Write(m_generation_born, "Generation Born", "gen_born");
   df.Write(m_update_born, "Update Born", "update_born");
@@ -501,6 +510,7 @@ void Avida::Systematics::Genotype::setupPropertyMap() const
   ADD_FUN_PROP(ave_repro_rate, double, GetFunctor(&m_repro_rate, &cDoubleSum::Average));
   ADD_FUN_PROP(ave_metabolic_rate, double, GetFunctor(&m_merit, &cDoubleSum::Average));
   ADD_FUN_PROP(ave_fitness, double, GetFunctor(&m_fitness, &cDoubleSum::Average));
+  ADD_FUN_PROP(ave_copymutrate, double, GetFunctor(&m_fitness, &cDoubleSum::Average)); //@BK
 
   ADD_FUN_PROP(max_fitness, double, GetFunctor(&m_fitness, &cDoubleSum::Max));
   

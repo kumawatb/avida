@@ -68,6 +68,7 @@ static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_last_executed_size(
 static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_last_gestation_time("last_gestation_time");
 static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_last_metabolic_rate("last_metabolic_rate");
 static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_last_fitness("last_fitness");
+static const Apto::BasicString<Apto::ThreadSafe> s_prop_name_last_copymutrate("last_copymutrate");
 
 
 // OrgPropRetrievalContainer - base container class for the global property map
@@ -137,6 +138,7 @@ void cOrganism::Initialize()
   DEFINE_PROP(last_gestation_time, int, getLastGestation, "Last Gestation Time");
   DEFINE_PROP(last_metabolic_rate, double, getLastMetabolicRate, "Last Metabolic Rage");
   DEFINE_PROP(last_fitness, double, getLastFitness, "Last Fitness");
+  DEFINE_PROP(last_copymutrate, double, getLastCopyMutRate, "Last Copy Mutation Rate");
 #undef DEFINE_PROP
 }
 
@@ -1708,3 +1710,4 @@ int cOrganism::getLastExecuted() { return m_phenotype.GetExecutedSize(); }
 int cOrganism::getLastGestation() { return m_phenotype.GetGestationTime(); }
 double cOrganism::getLastMetabolicRate() { return m_phenotype.GetLastMerit(); }
 double cOrganism::getLastFitness() { return m_phenotype.GetFitness(); }
+double cOrganism::getLastCopyMutRate() {return m_mut_rates.GetCopyMutProb(); }
