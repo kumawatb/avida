@@ -396,6 +396,61 @@ public:
 };
 
 
+/* Replaces a given genotype with another genotype preserving the mutation rate*/
+class cActionReplaceGenotype : public cAction
+{
+private:
+    cString cur_sequence;
+    cString new_sequence;
+public:
+    cActionReplaceGenotype(cWorld* world, const cString& args, Feedback&)
+    : cAction(world,args)
+  {
+      cString largs(args);
+      cur_sequence = largs.PopWord();
+      new_sequence = largs.PopWord();
+  }
+  
+  static const cString GetDescription() { return "Arguments: <string find sequence> <string replace sequence>";}
+  
+  void Process(cAvidaContext& ctx)
+  {
+    // Get living organisms
+    const Apto::Array<cOrganism*, Apto::Smart> live_orgs = m_world->GetPopulation().GetLiveOrgList();
+    
+    // Create genomes from sequences
+    const cInstSet& is = m_world->GetHardwareManager().GetDefaultInstSet();
+    HashPropertyMap props;
+    cHardwareManager::SetupPropertyMap(props, (const char*)is.GetInstSetName());
+    Genome cur_genome(is.GetHardwareType(), props, GeneticRepresentationPtr(new InstructionSequence((const char*)cur_sequence)));
+    Genome new_genome(is.GetHardwareType(), props, GeneticRepresentationPtr(new InstructionSequence((const char*)new_sequence)));
+    
+    // for each living organism, if organism has cur_genome
+    for (int i = 0; i < live_orgs.GetSize(); i++){
+        if(live_orgs[i]->GetGenome()==cur_genome){
+
+            // Get Cell ID, mutation rate
+            int cell_id = live_orgs[i]->GetCellID();
+            double mutrate = live_orgs[i]->MutationRates().GetCopyMutProb(); 
+            int lineage_label = live_orgs[i]->GetLineageLabel();
+            double merit = live_orgs[i]->GetPhenotype().GetMerit().GetDouble();
+            double neutral_metric = live_orgs[i]->GetPhenotype().GetNeutralMetric();
+
+            // Kill original organism
+            cPopulation& pop = m_world->GetPopulation();
+            pop.KillOrganism(ctx,cell_id);
+
+            // Inject new organism into the same cell id
+            // Make sure to carry over lineage id, etc.
+            m_world->GetPopulation().Inject(new_genome, Systematics::Source(Systematics::DIVISION, "", true), ctx, cell_id, merit, lineage_label, neutral_metric);
+            
+            // Set mutation rate
+            m_world->GetPopulation().GetCell(cell_id).GetOrganism()->MutationRates().SetCopyMutProb(mutrate); 
+        }
+    }
+  }
+  
+}; 
 /*
  Injects identical organisms into a range of cells of the population.
  
@@ -5828,4 +5883,6 @@ void RegisterPopulationActions(cActionLibrary* action_lib)
   action_lib->Register<cActionFlushTopNavTrace>("FlushTopNavTrace");
 
   action_lib->Register<cActionRemovePredators>("RemovePredators");
+  
+  action_lib->Register<cActionReplaceGenotype>("ReplaceGenotype"); //@BK
 }
