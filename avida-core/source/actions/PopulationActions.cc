@@ -451,6 +451,86 @@ public:
   }
   
 }; 
+
+
+/* Replaces all genotypes having the specified phenotype with another genotype while preserving the mutation rate and other properties*/
+class cActionReplaceGenotypesWithPhenotype : public cAction
+{
+private:
+    cString p; // Phenotype to match against
+    cString new_sequence;
+public:
+    cActionReplaceGenotypesWithPhenotype(cWorld* world, const cString& args, Feedback&)
+    : cAction(world,args)
+  {
+      cString largs(args);
+      // Insert phenotype into p
+      p = largs.PopWord(); 
+      // Insert replacement sequence into new_sequence
+      new_sequence = largs.PopWord();
+
+  }
+  
+  static const cString GetDescription() { return "Arguments: <phenotype> <replacement sequence>";}
+  
+  void Process(cAvidaContext& ctx)
+  {
+    // Get living organisms
+    const Apto::Array<cOrganism*, Apto::Smart> live_orgs = m_world->GetPopulation().GetLiveOrgList();
+    
+    // Create genomes from replacement sequence
+    const cInstSet& is = m_world->GetHardwareManager().GetDefaultInstSet();
+    HashPropertyMap props;
+    cHardwareManager::SetupPropertyMap(props, (const char*)is.GetInstSetName());
+    Genome new_genome(is.GetHardwareType(), props, GeneticRepresentationPtr(new InstructionSequence((const char*)new_sequence)));
+    
+    // for each living organism
+    for (int i = 0; i < live_orgs.GetSize(); i++){
+        
+        // Get counts of tasks performed by organism
+        Apto::Array<int> org_tasks = live_orgs[i]->GetPhenotype().GetCurTaskCount();
+        int total_diff = 0;
+
+        // Iterate over task counts
+        for(int j=0; j< org_tasks.GetSize(); ++j){
+          char curtask = p[j];
+          int taskflag = atoi(&curtask);
+          int orgtaskcount = (int) org_tasks[j];
+          if(taskflag==0 && orgtaskcount>0){
+            total_diff+=1;
+          } else if(taskflag==1 && orgtaskcount==0){
+            total_diff+=1;
+          }
+        }
+
+        // Rebuild and check 
+        
+        if(total_diff==0){
+            // Get Cell ID, mutation rate
+            int cell_id = live_orgs[i]->GetCellID();
+            double mutrate = live_orgs[i]->MutationRates().GetCopyMutProb(); 
+            int lineage_label = live_orgs[i]->GetLineageLabel();
+            double merit = live_orgs[i]->GetPhenotype().GetMerit().GetDouble();
+            double neutral_metric = live_orgs[i]->GetPhenotype().GetNeutralMetric();
+
+            // Kill original organism
+            cPopulation& pop = m_world->GetPopulation();
+            pop.KillOrganism(ctx,cell_id);
+
+            // Inject new organism into the same cell id
+            // Make sure to carry over lineage id, etc.
+            m_world->GetPopulation().Inject(new_genome, Systematics::Source(Systematics::DIVISION, "", true), ctx, cell_id, merit, lineage_label, neutral_metric);
+            
+            // Set mutation rate
+            m_world->GetPopulation().GetCell(cell_id).GetOrganism()->MutationRates().SetCopyMutProb(mutrate); 
+        }
+    }
+  }
+
+}; 
+
+
+
 /*
  Injects identical organisms into a range of cells of the population.
  
@@ -5885,4 +5965,5 @@ void RegisterPopulationActions(cActionLibrary* action_lib)
   action_lib->Register<cActionRemovePredators>("RemovePredators");
   
   action_lib->Register<cActionReplaceGenotype>("ReplaceGenotype"); //@BK
+  action_lib->Register<cActionReplaceGenotypesWithPhenotype>("ReplaceGenotypesWithPhenotype"); //@BK
 }
